@@ -19,15 +19,36 @@
  * @returns {JSON} - Search results.
  * */ 
  function findSearchTermInBooks(searchTerm, scannedTextObj) {
-    /** You will need to implement your search and 
-     * return the appropriate object here. */
-
-    var result = {
-        "SearchTerm": "",
+    //the actual return object
+    var matches = {
+        "SearchTerm": searchTerm,
         "Results": []
     };
+    //
+    var matchedTexts = [];
+    //for every book, iterate through all of the lines in its content 
+    //checking for exact matches(takes care of capitalization, hyphenation, substring matches)
+    scannedTextObj.forEach(book => {
+        book.Content.forEach(content => {
+            const words = content.Text.split(/\s+/);
+            for (let word of words) {
+                if (word === searchTerm) {
+                    matchedTexts.push({
+                        ISBN: book.ISBN,
+                        Page: content.Page,
+                        Line: content.Line
+                    });
+                    break; // no need to continue looking if we've already found a match
+                }
+            }
+        });
+    });
+
+    matches["Results"] = matchedTexts
+
     
-    return result; 
+    
+    return matches; 
 }
 
 /** Example input object. */
@@ -54,9 +75,60 @@ const twentyLeaguesIn = [
         ] 
     }
 ]
+
+const multiBookTesting = [
+    {
+        "Title": "Gardening in the Tropics",
+        "ISBN": "9781000000000",
+        "Content": [
+            {
+                "Page": 22,
+                "Line": 7,
+                "Text": "Tropical plants often require abundant sunlight."
+            },
+            {
+                "Page": 22,
+                "Line": 8,
+                "Text": "The key to a lush garden is understanding the climate."
+            }
+        ]
+    },
+    {
+        "Title": "Mastering Chess Strategies",
+        "ISBN": "9782000000000",
+        "Content": [
+            {
+                "Page": 15,
+                "Line": 3,
+                "Text": "Chess is not just about tactics, but also patience."
+            },
+            {
+                "Page": 15,
+                "Line": 4,
+                "Text": "Understanding the opponent's strategy is crucial."
+            }
+        ]
+    },
+    {
+        "Title": "Secrets of Amateur Astronomy",
+        "ISBN": "9783000000000",
+        "Content": [
+            {
+                "Page": 40,
+                "Line": 1,
+                "Text": "Stargazing requires clear skies and a keen eye."
+            },
+            {
+                "Page": 40,
+                "Line": 2,
+                "Text": "The beauty of astronomy is in its endless discovery."
+            }
+        ]
+    }
+];
     
 /** Example output object */
-const twentyLeaguesOut = {
+const twentyLeaguesOut_the = {
     "SearchTerm": "the",
     "Results": [
         {
@@ -66,6 +138,48 @@ const twentyLeaguesOut = {
         }
     ]
 }
+
+const twentyLeaguesOut_dark = {
+    "SearchTerm": "dark",
+    "Results": [
+   
+    ]
+}
+
+const twentyLeaguesOut_water = {
+    "SearchTerm": "water",
+    "Results": [
+   
+    ]
+}
+
+const twentyLeaguesOut_The = {
+    "SearchTerm": "The",
+    "Results": [
+        {
+            "ISBN": "9780000528531",
+            "Page": 31,
+            "Line": 8
+        }
+    ]
+}
+
+const multiBookOut_the = {
+    "SearchTerm": "the",
+    "Results": [
+        {
+            "ISBN": "9781000000000",
+            "Page": 22,
+            "Line": 8
+        },
+        {
+            "ISBN": "9782000000000",
+            "Page": 15,
+            "Line": 4
+        }
+    ]
+};
+
 
 /*
  _   _ _   _ ___ _____   _____ _____ ____ _____ ____  
@@ -85,11 +199,11 @@ const twentyLeaguesOut = {
 
 /** We can check that, given a known input, we get a known output. */
 const test1result = findSearchTermInBooks("the", twentyLeaguesIn);
-if (JSON.stringify(twentyLeaguesOut) === JSON.stringify(test1result)) {
+if (JSON.stringify(twentyLeaguesOut_the) === JSON.stringify(test1result)) {
     console.log("PASS: Test 1");
 } else {
     console.log("FAIL: Test 1");
-    console.log("Expected:", twentyLeaguesOut);
+    console.log("Expected:", twentyLeaguesOut_the);
     console.log("Received:", test1result);
 }
 
@@ -99,6 +213,46 @@ if (test2result.Results.length == 1) {
     console.log("PASS: Test 2");
 } else {
     console.log("FAIL: Test 2");
-    console.log("Expected:", twentyLeaguesOut.Results.length);
+    console.log("Expected:", twentyLeaguesOut_the.Results.length);
     console.log("Received:", test2result.Results.length);
+}
+
+//check to make sure hyphenated words don't get found
+const test3result = findSearchTermInBooks("dark", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesOut_dark) === JSON.stringify(test3result)) {
+    console.log("PASS: Test 3");
+} else {
+    console.log("FAIL: Test 3");
+    console.log("Expected:", JSON.stringify(twentyLeaguesOut_dark));
+    console.log("Received:", test3result);
+}
+
+//should return nothing
+const test4result = findSearchTermInBooks("water", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesOut_water) === JSON.stringify(test4result)) {
+    console.log("PASS: Test 4");
+} else {
+    console.log("FAIL: Test 4");
+    console.log("Expected:", JSON.stringify(twentyLeaguesOut_water));
+    console.log("Received:", test4result);
+}
+
+//test case-sensitivity
+const test5result = findSearchTermInBooks("The", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesOut_The) === JSON.stringify(test5result)) {
+    console.log("PASS: Test 5");
+} else {
+    console.log("FAIL: Test 5");
+    console.log("Expected:", twentyLeaguesOut_The);
+    console.log("Received:", test5result);
+}
+
+//testing with multiple books
+const test6result = findSearchTermInBooks("the", multiBookTesting);
+if (JSON.stringify(multiBookOut_the) === JSON.stringify(test6result)) {
+    console.log("PASS: Test 6");
+} else {
+    console.log("FAIL: Test 6");
+    console.log("Expected:", multiBookOut_the);
+    console.log("Received:", test6result);
 }
